@@ -1,7 +1,5 @@
 import express from 'express';
 import  {
-     adminLogin,
-     adminLogout,
      getAdminDashboardStats,
      getPendingApplications,
      getApplicationById,
@@ -20,10 +18,6 @@ import  {
 import verifyAdminToken from '../middleware/verifyAdminToken.js';
 
 const router = express.Router();
-
-router.post('/login', adminLogin);
-
-router.post('/logout',adminLogout);
 
 router.get("/dashboard-stats",verifyAdminToken,getAdminDashboardStats);
 

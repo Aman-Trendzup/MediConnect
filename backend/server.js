@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import connectDB from './database/db.js';
 import adminRoutes from './routes/adminRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 
 dotenv.config();
@@ -52,7 +52,7 @@ app.use(cors({
 
 //routes
 app.use("/api/admin",adminRoutes);
-app.use("/api/user",userRoutes);
+app.use("/api/auth",authRoutes);
 
 
 //404 handler

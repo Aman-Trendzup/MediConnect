@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 
 
-export const registerUser = async (req, res) => {
+export const register = async (req, res) => {
   try {
      const {name,email,password,role='patient'}=req.body;
      const existingUser= await User.findOne({email});
@@ -52,7 +52,7 @@ export const registerUser = async (req, res) => {
  
 };
 
-export const loginUser = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -102,7 +102,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-export const logoutUser = async (_, res) => {
+export const logout = async (_, res) => {
  
    res.clearCookie("token", {
         httpOnly: true,
