@@ -5,12 +5,12 @@ const serviceSchema = new mongoose.Schema({
     type: String, 
     required: [true,"service name is required"],
      unique: true ,
-     min:[2,"service category must be more than 2 characters"],
-      max:[70,"service category cannot exceed 100 characters"]
+     minlength:[2,"service category must be more than 2 characters"],
+      maxlength:[70,"service category cannot exceed 100 characters"]
     }, 
   description: { 
     type: String,
-    max:[500,"description must be 500 characters"]
+    maxlength:[500,"description must be 500 characters"]
 },
   icon: {
      type: String 

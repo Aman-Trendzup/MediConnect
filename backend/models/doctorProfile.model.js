@@ -12,8 +12,8 @@ const doctorProfileSchema = new mongoose.Schema({
      },
   qualifications: [
     { type: String ,
-      min:[2,"qualification must be atleast 2 characters long"],
-      max:[100,"qualification must not be longer than 100 characters"]
+      minlength:[2,"qualification must be atleast 2 characters long"],
+      maxlength:[100,"qualification must not be longer than 100 characters"]
     }
  ],
   experienceYears: { 
@@ -27,15 +27,36 @@ const doctorProfileSchema = new mongoose.Schema({
      required: [true,"consultation fee is required"],
       min:[0,"slot duration must be non-negative"]
      },
+
   clinicAddress: {
-    street: String,
-    city: String,
-    state: String,
-    pincode: String
+  street: {
+    type: String,
+    required: [true, "Street address is required"],
+    minlength: [3, "Street address must be at least 3 characters long"],
+    maxlength: [100, "Street address cannot exceed 100 characters"]
   },
+  city: {
+    type: String,
+    required: [true, "City is required"],
+    minlength: [2, "City name must be at least 2 characters long"],
+    maxlength: [50, "City name cannot exceed 50 characters"]
+  },
+  state: {
+    type: String,
+    required: [true, "State is required"],
+    minlength: [2, "State name must be at least 2 characters long"],
+    maxlength: [50, "State name cannot exceed 50 characters"]
+  },
+  pincode: {
+    type: String,
+    required: [true, "Pincode is required"],
+    minlength: [6, "Pincode must be at least 6 characters"], 
+    maxlength: [10, "Pincode cannot exceed 10 characters"]
+  }
+},
   bio: {
      type: String,
-     max:[500,"bio must be 500 characters"]
+     maxlength:[500,"bio must be 500 characters"]
      },
   isPublished: {
      type: Boolean,

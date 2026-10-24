@@ -14,7 +14,7 @@ const notificationSchema = new mongoose.Schema({
   message: {
      type: String,
       required:[true ,"message is required"] ,
-      min:[2,"message must be atleast 2 character"]
+      minlength:[2,"message must be atleast 2 character"]
     },
   isRead: {
      type: Boolean,
