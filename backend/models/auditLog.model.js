@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
 const auditLogSchema = new mongoose.Schema({
-  admin: {
+  user: {
      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-       required: [true,"admin is required"]
+       required: [true,"user is required"]
      },
   action: {
      type: String,
@@ -15,10 +15,7 @@ const auditLogSchema = new mongoose.Schema({
     }, 
   target: {
      type: mongoose.Schema.Types.ObjectId
-     },
-  details: {
-     type: String 
-    },
+     }
 },{
     timestamps:true
 });

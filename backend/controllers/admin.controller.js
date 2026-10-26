@@ -1,9 +1,9 @@
 import {User} from "../models/user.model.js";
-import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generateToken.js";
 import {DoctorApplication} from "../models/doctorApplication.model.js";
 import {Appointment} from "../models/appointment.model.js";
 import {Service} from "../models/service.model.js"
+import { AuditLog } from "../models/auditLog.model.js";
+import { logAdminAction } from "../utils/auditLogger.js";
 
 
 //GET /api/admin/dashboard-stats
@@ -164,7 +164,15 @@ export const doctorApplicationReview = async (req, res) => {
     // Automatically upgrade user role to doctor when application is approved
     if (status === 'approved') {
       await User.findByIdAndUpdate(application.user, { role: 'doctor' });
-    }
+    }  
+   
+    //audit log 
+    await logAdminAction({
+      user: req.user.userId,
+      action: `DOCTOR APPLICATION ${status.toUpperCase()}`,
+      targetModel: 'DoctorApplication',
+      target: application._id,
+    });
 
     return res.status(200).json({
       success: true,
@@ -272,6 +280,15 @@ export const doctorApplicationReview = async (req, res) => {
     }
 
     await User.findByIdAndDelete(id);
+     
+
+       //audit log 
+    await logAdminAction({
+      user: req.user.userId,
+      action: "USER DELETED",
+      targetModel: 'User',
+      target: user._id,
+    });
 
     return res.status(200).json({
       success: true,
@@ -288,8 +305,8 @@ export const doctorApplicationReview = async (req, res) => {
 };
 
 //PATCH /api/admin/users/:id/status
-export const updateUserStatus=async(req,res)=>{
-    try {
+export const updateUserStatus = async (req, res) => {
+  try {
     const { id } = req.params;
     const { status } = req.body;
 
@@ -297,11 +314,11 @@ export const updateUserStatus=async(req,res)=>{
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'status must be active, inactive, suspended or blocked'
+        message: 'Status must be active, inactive, suspended or blocked'
       });
     }
 
-   // Find user and update status
+    // Find user and update status
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { status },
@@ -314,20 +331,29 @@ export const updateUserStatus=async(req,res)=>{
         message: "User not found"
       });
     }
+    
+    // Audit log 
+    await logAdminAction({
+      user: req.user.userId, 
+      action: `USER STATUS UPDATED TO ${status.toUpperCase()}`,
+      targetModel: 'User',
+      target: updatedUser._id, 
+    });
 
     return res.status(200).json({
       success: true,
       message: `User status successfully updated to ${status}`,
-      data: updatedUser
+      updatedUser
     });
-    } catch (error) {
-           console.log(error.message);
-          return res.status(500).json({
-            success:true,
-            message:"an error occured while updating user status",
-        })
-    }
-}
+
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating user status",
+    });
+  }
+};
 
 //GET /api/admin/appointments
 export const getAppointments = async (req, res) => {
@@ -381,6 +407,14 @@ export const createServiceCategory = async (req, res) => {
     }
 
     const newService = await Service.create({ name, description });
+    
+       // Audit log 
+    await logAdminAction({
+      user:  req.user.userId, 
+      action: `SERVICE CATEGORY ${newService.name} CREATED`,
+      targetModel: 'Service',
+      target: newService._id, 
+    });
 
     return res.status(201).json({
       success: true,
@@ -462,6 +496,14 @@ export const updateServiceCategory = async (req, res) => {
         message: "Service category not found"
       });
     }
+    
+    // Audit log 
+    await logAdminAction({
+      user:  req.user.userId, 
+      action: `SERVICE CATEGORY UPDATED to ${updatedService.name}`,
+      targetModel: 'Service',
+      target: updatedService._id, 
+    });
 
     return res.status(200).json({
       success: true,
@@ -492,6 +534,14 @@ export const deleteServiceCategory = async (req, res) => {
       });
     }
 
+          // Audit log 
+    await logAdminAction({
+      user:  req.user.userId, 
+      action: `SERVICE CATEGORY ${deletedService.name} DELETED`,
+      targetModel: 'Service',
+      target: deletedService._id, 
+    });
+
     return res.status(200).json({
       success: true,
       message: "Service category deleted successfully"
@@ -506,4 +556,25 @@ export const deleteServiceCategory = async (req, res) => {
   }
 };
 
+//GET /api/admin/audit-logs
+export const getAuditLogs = async (req, res) => {
+  try {
+  const logs = await AuditLog.find({})
+      .populate('user', 'name email role') 
+      .sort({ createdAt: -1 })             
+      .limit(100);                         
+
+    return res.status(200).json({
+      success: true,
+      count: logs.length,
+      logs
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({
+      success: false,
+      message: "an error occured while fetching audit logs"
+    })
+  }
+}
 

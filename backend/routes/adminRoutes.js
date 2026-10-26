@@ -13,7 +13,8 @@ import  {
      getServiceCategoryById,
      createServiceCategory,
      updateServiceCategory,
-     deleteServiceCategory
+     deleteServiceCategory,
+     getAuditLogs
     } from '../controllers/admin.controller.js';
 import verifyAdminToken from '../middleware/verifyAdminToken.js';
 
@@ -47,5 +48,6 @@ router.put("/service-category/:id",verifyAdminToken,updateServiceCategory);
 
 router.delete("/service-category/:id",verifyAdminToken, deleteServiceCategory);
 
+router.get("/audit-logs",verifyAdminToken,getAuditLogs);
 
 export default router;
