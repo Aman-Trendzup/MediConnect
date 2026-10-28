@@ -238,19 +238,6 @@ export const DashboardWrapper: React.FC<DashboardComponentProps> = ({
               </div>
             </Link>
 
-            {/* Settings Link */}
-            <Link
-              href="/admin/settings"
-              className="group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium  text-white border border-primary hover:border-secondary "
-              title={!isSidebarOpen ? 'Settings' : undefined}
-            >
-              <div className="flex items-center gap-3">
-                <Settings className="h-5 w-5 shrink-0" />
-                <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
-                   Settings
-                </span>
-              </div>
-            </Link>
           </nav>
         </div>
 

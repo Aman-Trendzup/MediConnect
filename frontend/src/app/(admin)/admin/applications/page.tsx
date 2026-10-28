@@ -85,7 +85,7 @@ export default function DoctorApplicationsPage() {
             </div>
 
             {/* Total Count Badge */}
-            <div className="flex items-center gap-2 rounded-xl border border-secondary/15 bg-accent/50 px-4 py-2 text-xs font-bold text-secondary">
+            <div className="flex items-center gap-2 rounded-xl border border-secondary px-4 py-2 text-xs font-bold text-secondary">
               <span>{applications.length} Applications Found</span>
             </div>
           </div>
@@ -95,13 +95,13 @@ export default function DoctorApplicationsPage() {
             
             {/* Search Input */}
             <div className="relative w-full lg:w-96">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary/40" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
               <input 
                 type="text" 
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by doctor name or email..." 
-                className="w-full rounded-xl border border-secondary/20 bg-accent/40 py-2.5 pl-10 pr-4 text-xs font-medium text-secondary placeholder-secondary/40 outline-none focus:border-primary shadow-2xs"
+                className="w-full rounded-xl border border-secondary py-2.5 pl-10 pr-4 text-xs font-medium text-secondary placeholder-secondary/60 outline-none focus:border-primary shadow-2xs"
               />
             </div>
 
@@ -123,7 +123,7 @@ export default function DoctorApplicationsPage() {
                     className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs ${
                       isActive 
                         ? 'bg-primary text-white border border-primary' 
-                        : 'bg-accent/50 text-secondary border border-secondary/15 hover:bg-accent'
+                        : 'text-secondary border border-secondary'
                     }`}
                   >
                     {Icon && <Icon className="h-3.5 w-3.5" />}
