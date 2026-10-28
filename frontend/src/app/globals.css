@@ -2,3 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "tailwindcss";
+
+
+@theme{
+  --color-accent: #f5eedd;                      
+  --color-secondary: #84b3ce;                    
+   --color-primary: #16587b;                     
+}
+
+
