@@ -3,6 +3,7 @@ import {DoctorApplication} from "../models/doctorApplication.model.js";
 import {Appointment} from "../models/appointment.model.js";
 import {Service} from "../models/service.model.js"
 import { AuditLog } from "../models/auditLog.model.js";
+import { DoctorProfile } from "../models/doctorProfile.model.js";
 import { logAdminAction } from "../utils/auditLogger.js";
 
 
@@ -13,7 +14,11 @@ export const getAdminDashboardStats = async (req, res) => {
             totalUsers,
             totalDoctors,
             totalPatients,
+            totalApplications,
             pendingApplications,
+            approvedApplications,
+            rejectedApplications,
+            needsCorrectionApplications,
             totalAppointments,
             totalCategories,
             recentAppointments,
@@ -22,15 +27,27 @@ export const getAdminDashboardStats = async (req, res) => {
             User.countDocuments(),
             User.countDocuments({ role: 'doctor' }),
             User.countDocuments({ role: 'patient' }),
+            DoctorApplication.countDocuments(),
             DoctorApplication.countDocuments({ status: 'pending' }),
+            DoctorApplication.countDocuments({ status: 'approved' }),
+            DoctorApplication.countDocuments({ status: 'rejected' }),
+            DoctorApplication.countDocuments({ status: 'needs_correction' }),
             Appointment.countDocuments(),
             Service.countDocuments(),
-            // Fetch 5 latest appointments (change populate paths if your schema differs)
+            
+            // Fetch 5 latest appointments with nested doctor user population
             Appointment.find()
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .populate('patient', 'name email')
-                .populate('doctor', 'name email'),
+                .populate({
+                    path: 'doctor',
+                    populate: {
+                        path: 'user', // Pulls name and email from the underlying User document linked to the DoctorProfile
+                        select: 'name email'
+                    }
+                }),
+
             // Fetch 5 latest audit logs
             AuditLog.find()
                 .sort({ createdAt: -1 })
@@ -46,7 +63,13 @@ export const getAdminDashboardStats = async (req, res) => {
                     totalUsers,
                     totalDoctors,
                     totalPatients,
-                    pendingApplications,
+                    applications: {
+                        total: totalApplications,
+                        pending: pendingApplications,
+                        approved: approvedApplications,
+                        rejected: rejectedApplications,
+                        needs_correction: needsCorrectionApplications
+                    },
                     totalAppointments,
                     totalCategories
                 },
@@ -55,10 +78,10 @@ export const getAdminDashboardStats = async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error.message);
+        console.error("an error occured when fetching admin dashboard stats:", error); 
         return res.status(500).json({
             success: false,
-            message: "Internal Server Error while fetching admin dashboard stats"
+            message: error.message || "Internal Server Error while fetching admin dashboard stats"
         });
     }
 };
@@ -145,7 +168,7 @@ export const doctorApplicationReview = async (req, res) => {
       });
     }
 
-    // needs rejectionReason if status is rejected
+    // Needs rejectionReason if status is rejected
     if (status === 'rejected' && !rejectionReason) {
       return res.status(400).json({
         success: false,
@@ -153,7 +176,7 @@ export const doctorApplicationReview = async (req, res) => {
       });
     }
 
-    // needs correctionReason if status is needs_correction
+    // Needs correctionReason if status is needs_correction
     if (status === 'needs_correction' && !correctionReason) {
       return res.status(400).json({
         success: false,
@@ -179,19 +202,35 @@ export const doctorApplicationReview = async (req, res) => {
       application.correctionReason = correctionReason;
       application.rejectionReason = undefined;
     } else {
-      //approved
+      // approved
       application.rejectionReason = undefined;
       application.correctionReason = undefined;
     }
 
     await application.save();
 
-    // Automatically upgrade user role to doctor when application is approved
+    // If status is approved, upgrade user role AND create DoctorProfile
     if (status === 'approved') {
       await User.findByIdAndUpdate(application.user, { role: 'doctor' });
+
+      // Check if a DoctorProfile already exists for this user to avoid duplicate creation errors
+      const existingProfile = await DoctorProfile.findOne({ user: application.user });
+      
+      if (!existingProfile) {
+        await DoctorProfile.create({
+          user: application.user,
+          specialization: application.specialization,
+          qualifications: application.qualifications || [],
+          experienceYears: application.experienceYears,
+          consultationFee: application.consultationFee,
+          clinicAddress: application.clinicAddress,
+          bio: application.bio || '',
+          isPublished: true
+        });
+      }
     }  
    
-    //audit log 
+    // Audit log 
     await logAdminAction({
       user: req.user.userId,
       action: `DOCTOR APPLICATION ${status.toUpperCase()}`,
@@ -206,10 +245,10 @@ export const doctorApplicationReview = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error.message);
+    console.error("Error reviewing doctor application:", error);
     return res.status(500).json({
       success: false,
-      message: "An error occurred while reviewing the doctor application",
+      message: error.message || "An error occurred while reviewing the doctor application",
     });
   }
 };

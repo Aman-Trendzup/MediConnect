@@ -298,7 +298,7 @@ export default function ServiceCategoriesPage() {
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                      Description <span className="text-slate-400 font-normal">(Optional)</span>
+                      Description 
                     </label>
                     <textarea 
                       value={categoryDescription}

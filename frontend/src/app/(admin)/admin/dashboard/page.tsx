@@ -12,7 +12,6 @@ import {
   CheckCircle2, 
   XCircle,  
   ArrowUpRight, 
-  Activity,
   Loader2 
 } from 'lucide-react';
 import Link from 'next/link';
@@ -22,19 +21,22 @@ interface DashboardData {
     totalUsers: number;
     totalDoctors: number;
     totalPatients: number;
-    pendingApplications: number;
     totalAppointments: number;
     totalCategories: number;
-    approvedApplications?: number;
-    rejectedApplications?: number;
-    totalApplications?: number;
+    applications: {
+      total: number;
+      pending: number;
+      approved: number;
+      rejected: number;
+      needs_correction: number;
+    };
   };
   recentAppointments: {
     _id: string;
     patient?: { name: string; email: string };
-    doctor?: { name: string; email: string };
+    doctor?: { user?: { name: string; email: string } } | null;
     appointmentDate?: string;
-    type?: string;
+    timeSlot?: string;
     status?: string;
   }[];
   recentAuditLogs: {
@@ -56,7 +58,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const response = await adminApi.getDashboardStats(); // Or your exact adminApi method name
+        const response = await adminApi.getDashboardStats();
         if (response.success) {
           setDashboardData(response.data);
         }
@@ -85,12 +87,15 @@ export default function AdminDashboardPage() {
     totalUsers: 0,
     totalDoctors: 0,
     totalPatients: 0,
-    pendingApplications: 0,
     totalAppointments: 0,
     totalCategories: 0,
-    approvedApplications: 0,
-    rejectedApplications: 0,
-    totalApplications: 0,
+    applications: {
+      total: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      needs_correction: 0,
+    },
   };
 
   const recentAppointments = dashboardData?.recentAppointments || [];
@@ -150,7 +155,7 @@ export default function AdminDashboardPage() {
               </div>
               <Link href="/admin/applications?status=pending">
                 <div className='flex flex-col items-start text-left cursor-pointer'>
-                  <span className="text-3xl font-extrabold text-amber-600">{counts.pendingApplications}</span>
+                  <span className="text-3xl font-extrabold text-amber-600">{counts.applications.pending}</span>
                   <span className="text-xs font-bold uppercase tracking-wider text-amber-600 mt-1">Pending Applications</span>
                 </div>
               </Link>
@@ -176,7 +181,7 @@ export default function AdminDashboardPage() {
                   <CalendarCheck className="h-6 w-6" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-2xl font-extrabold leading-tight">{counts.totalApplications || (counts.pendingApplications + (counts.approvedApplications || 0) + (counts.rejectedApplications || 0))}</span>
+                  <span className="text-2xl font-extrabold leading-tight">{counts.applications.total}</span>
                   <span className="text-xs font-medium uppercase tracking-wider opacity-90 mt-0.5">Total Applications</span>
                 </div>
               </div>
@@ -189,7 +194,7 @@ export default function AdminDashboardPage() {
                     <Clock className="h-4 w-4" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-amber-700 leading-tight">{counts.pendingApplications}</span>
+                    <span className="text-sm font-bold text-amber-700 leading-tight">{counts.applications.pending}</span>
                     <span className="text-xs font-semibold text-amber-900/70 truncate mt-0.5">Pending</span>
                   </div>
                 </div>
@@ -200,7 +205,7 @@ export default function AdminDashboardPage() {
                     <CheckCircle2 className="h-4 w-4" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-emerald-700 leading-tight">{counts.approvedApplications || 0}</span>
+                    <span className="text-sm font-bold text-emerald-700 leading-tight">{counts.applications.approved}</span>
                     <span className="text-xs font-semibold text-emerald-900/70 truncate mt-0.5">Approved</span>
                   </div>
                 </div>
@@ -211,7 +216,7 @@ export default function AdminDashboardPage() {
                     <XCircle className="h-4 w-4" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-rose-700 leading-tight">{counts.rejectedApplications || 0}</span>
+                    <span className="text-sm font-bold text-rose-700 leading-tight">{counts.applications.rejected}</span>
                     <span className="text-xs font-semibold text-rose-900/70 truncate mt-0.5">Rejected</span>
                   </div>
                 </div>
@@ -240,7 +245,7 @@ export default function AdminDashboardPage() {
                   <span>Patient</span>
                   <span>Doctor</span>
                   <span>Date & Time</span>
-                  <span>Type</span>
+                  <span>Type / Slot</span>
                   <span>Status</span>
                 </div>
                 
@@ -251,19 +256,24 @@ export default function AdminDashboardPage() {
                 ) : (
                   <div className="space-y-2">
                     {recentAppointments.map((apt) => {
-                      const aptDate = apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleString() : 'N/A';
+                      const aptDate = apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString() : 'N/A';
+                      const doctorName = apt.doctor?.user?.name || 'Unassigned';
                       return (
                         <div 
                           key={apt._id}
                           className="grid grid-cols-5 items-center h-12 w-full rounded-xl border border-secondary/10 px-3 text-xs font-medium text-secondary text-center bg-secondary/5"
                         >
                           <span className="font-bold text-primary truncate px-1">{apt.patient?.name || 'Patient'}</span>
-                          <span className="font-semibold text-primary truncate px-1">{apt.doctor?.name || 'Doctor'}</span>
+                          <span className="font-semibold text-primary truncate px-1">{doctorName}</span>
                           <span className="text-secondary truncate px-1">{aptDate}</span>
-                          <span className="capitalize">{apt.type || 'Consultation'}</span>
+                          <span className="truncate px-1">{apt.timeSlot || 'Consultation'}</span>
                           <div>
-                            <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">
-                              {apt.status || 'Scheduled'}
+                            <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              apt.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                              apt.status === 'cancelled' ? 'bg-rose-100 text-rose-800' :
+                              'bg-amber-100 text-amber-800'
+                            }`}>
+                              {apt.status || 'Pending'}
                             </span>
                           </div>
                         </div>
@@ -275,7 +285,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Audit LOGS SECTION */}
+          {/* AUDIT LOGS SECTION */}
           <div className="rounded-2xl border border-secondary bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <span className="flex items-center gap-2 px-4 py-1.5 text-md font-bold tracking-wide uppercase text-primary inline-flex">
@@ -303,12 +313,12 @@ export default function AdminDashboardPage() {
                       className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-secondary/10 bg-secondary/5 p-3.5 text-xs"
                     >
                       <div>
-                        <p className="font-bold text-primary">{log.action}</p>
-                        <p className="text-secondary/70 mt-0.5">
-                          Triggered by: <span className="font-semibold text-primary">{log.user?.name || 'System Admin'}</span> ({log.user?.email || 'admin'})
+                        <p className="font-bold text-primary text-sm">{log.action}</p>
+                        <p className="text-secondary font-semibold mt-0.5 text-xs">
+                          Triggered by: <span className="font-semibold text-secondary">{log.user?.name || 'System Admin'}</span> ({log.user?.email || 'admin'})
                         </p>
                       </div>
-                      <span className="text-[13px] font-medium text-secondary bg-white px-2.5 py-1 ">
+                      <span className="text-xs font-medium text-secondary bg-white px-2.5 py-1">
                         {logTime}
                       </span>
                     </div>
