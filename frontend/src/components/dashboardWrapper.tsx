@@ -104,9 +104,6 @@ export const DashboardWrapper: React.FC<DashboardComponentProps> = ({
                   <p className="text-sm font-medium text-white">{user.name}</p>
                   <p className="truncate text-xs text-white">{user.email}</p>
                 </div>
-                <a href="#profile" className="flex items-center gap-2.5 px-4 py-2 text-sm rounded-md text-white hover:bg-secondary hover:text-accent">
-                  <UserIcon className="h-4 w-4" /> Profile Settings
-                </a>
                 <div className="border-t border-slate-700/60 my-1" />
                 <button
                   onClick={() => alert('Logged out')}

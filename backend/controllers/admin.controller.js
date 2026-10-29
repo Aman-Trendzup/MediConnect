@@ -15,28 +15,45 @@ export const getAdminDashboardStats = async (req, res) => {
             totalPatients,
             pendingApplications,
             totalAppointments,
-            totalCategories
+            totalCategories,
+            recentAppointments,
+            recentAuditLogs
         ] = await Promise.all([
             User.countDocuments(),
             User.countDocuments({ role: 'doctor' }),
             User.countDocuments({ role: 'patient' }),
             DoctorApplication.countDocuments({ status: 'pending' }),
             Appointment.countDocuments(),
-            Service.countDocuments()
+            Service.countDocuments(),
+            // Fetch 5 latest appointments (change populate paths if your schema differs)
+            Appointment.find()
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .populate('patient', 'name email')
+                .populate('doctor', 'name email'),
+            // Fetch 5 latest audit logs
+            AuditLog.find()
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .populate('user', 'name email role')
         ]);
 
         return res.status(200).json({
             success: true,
             message: "successfully fetched admin dashboard stats",
             data: {
-                totalUsers,
-                totalDoctors,
-                totalPatients,
-                pendingApplications,
-                totalAppointments,
-                totalCategories
+                counts: {
+                    totalUsers,
+                    totalDoctors,
+                    totalPatients,
+                    pendingApplications,
+                    totalAppointments,
+                    totalCategories
+                },
+                recentAppointments,
+                recentAuditLogs
             }
-        })
+        });
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({
@@ -44,37 +61,45 @@ export const getAdminDashboardStats = async (req, res) => {
             message: "Internal Server Error while fetching admin dashboard stats"
         });
     }
+};
 
-}
+//GET /api/admin/doctor-applications
+export const getDoctorApplications = async (req, res) => {
+  try {
+    const { status } = req.query;
+    let query = {};
 
-//GET /api/admin/pending-applications
-  export const getPendingApplications = async(req,res)=>{
-    try {
-         const pendingApplications = await DoctorApplication.find({status:'pending'})
-        .populate('user', 'name email')
-        .sort({ submittedAt: -1 });
-
-         if(!pendingApplications){
-             return res.status(200).json({
-            success:true,
-            message:"there are no pending applications right now",
-        })
-         }
-
-        return res.status(200).json({
-            success:true,
-            message:"successfully fetched pending application",
-            count: pendingApplications.length,
-            pendingApplications
-        })
-    } catch (error) {
-        console.log(error.message);
-          return res.status(500).json({
-            success:true,
-            message:"an error occured while fetching pending applications",
-        })
+    // If a status query is provided 
+    if (status && status !== 'all') {
+      const validStatuses = ['pending', 'approved', 'rejected', 'needs_correction'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status filter provided."
+        });
+      }
+      query.status = status;
     }
+
+    const applications = await DoctorApplication.find(query)
+      .populate('user', 'name email')
+      .sort({ submittedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      message: status ? `Successfully fetched ${status} applications.` : "Successfully fetched all doctor applications.",
+      count: applications.length,
+      applications
+    });
+
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({
+      success: false, 
+      message: "An error occurred while fetching doctor applications."
+    });
   }
+};
  
   //GET /api/admin/applications/:id
 export const getApplicationById = async (req, res) => {
@@ -190,31 +215,52 @@ export const doctorApplicationReview = async (req, res) => {
 };
 
 //GET /api/admin/users
-  export const getUsers = async(req,res)=>{
-    try {
-        const { role, status } = req.query;
+export const getUsers = async (req, res) => {
+  try {
+    const { role, status } = req.query;
     const filter = {};
 
-    if (role) filter.role = role;
-    if (status) filter.status = status;
+    //filter by role
+    if (role && role !== 'all') {
+      const validRoles = ['patient', 'doctor', 'admin'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid role filter provided."
+        });
+      }
+      filter.role = role;
+    }
+
+    if (status && status !== 'all') {
+      const validStatuses = ['active', 'inactive', 'suspended', 'blocked'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status filter provided."
+        });
+      }
+      filter.status = status;
+    }
 
     const users = await User.find(filter)
       .sort({ createdAt: -1 });
-         
-        return res.status(200).json({
-            success:true,
-            message:"successfully fetched users",
-           count: users.length,
-           users
-        })
-    } catch (error) {
-        console.log(error.message);
-          return res.status(500).json({
-            success:true,
-            message:"an error occured while fetching users",
-        })
-    }
+
+    return res.status(200).json({
+      success: true,
+      message: role ? `Successfully fetched ${role}s.` : "Successfully fetched all users.",
+      count: users.length,
+      users
+    });
+
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({
+      success: false, 
+      message: "An error occurred while fetching users.",
+    });
   }
+};
  
   //GET /api/admin/users/:id
   export const getUserById = async (req, res) => {
@@ -252,7 +298,7 @@ export const doctorApplicationReview = async (req, res) => {
 };
 
 //DELETE /api/admin/users/:id
-  export const deleteUser= async (req, res) => {
+  export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);

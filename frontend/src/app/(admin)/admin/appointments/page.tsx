@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { DashboardWrapper } from '@/components/dashboardWrapper';
 import { Search, Loader2, Clock, CheckCircle2, XCircle, CalendarCheck2, Eye } from 'lucide-react';
@@ -79,6 +79,12 @@ export default function AppointmentMonitoringPage() {
 
   return (
     <DashboardWrapper>
+         <Suspense fallback={
+              <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-2">
+                <Loader2 className="h-7 w-7 animate-spin text-slate-700" />
+                <p className="text-xs font-semibold">Loading applications...</p>
+              </div>
+            }>
       <div className="space-y-6">
         
         {/* PAGE TITLE HEADER */}
@@ -89,7 +95,7 @@ export default function AppointmentMonitoringPage() {
         </div>
 
         {/* MAIN CONTAINER */}
-        <div className="rounded-2xl border border-primary  p-6 ">
+        <div className="  p-6 ">
           
           {/* HEADER & VIEW ALL / COUNT */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -223,6 +229,7 @@ export default function AppointmentMonitoringPage() {
         </div>
 
       </div>
+      </Suspense>
     </DashboardWrapper>
   );
 }
