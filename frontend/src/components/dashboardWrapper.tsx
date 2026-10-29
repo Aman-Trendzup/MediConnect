@@ -14,9 +14,6 @@ export interface DashboardComponentProps {
   children: ReactNode;
 }
 
-/**
- * 1. INNER CONTENT COMPONENT (Contains useSearchParams logic)
- */
 function DashboardWrapperContent({ children }: DashboardComponentProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -52,8 +49,8 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
   };
 
   // Fallback display values if user data is loading or missing
-  const displayName = user?.name || 'System Administrator';
-  const displayEmail = user?.email || 'admin@mediconnect.com';
+  const displayName = user?.name || 'Name';
+  const displayEmail = user?.email || 'Email';
 
   // Helper function to check if a sidebar link is currently active
   const isActiveLink = (path: string, roleQuery?: string) => {
@@ -305,9 +302,8 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
   );
 }
 
-/**
- * 2. MAIN WRAPPER WITH SUSPENSE BOUNDARY
- */
+// MAIN WRAPPER WITH SUSPENSE BOUNDARY
+ 
 export function DashboardWrapper({ children }: DashboardComponentProps) {
   return (
     <Suspense

@@ -35,7 +35,6 @@ export const getAdminDashboardStats = async (req, res) => {
             Appointment.countDocuments(),
             Service.countDocuments(),
             
-            // Fetch 5 latest appointments with nested doctor user population
             Appointment.find()
                 .sort({ createdAt: -1 })
                 .limit(5)
@@ -43,7 +42,7 @@ export const getAdminDashboardStats = async (req, res) => {
                 .populate({
                     path: 'doctor',
                     populate: {
-                        path: 'user', // Pulls name and email from the underlying User document linked to the DoctorProfile
+                        path: 'user',
                         select: 'name email'
                     }
                 }),
@@ -213,7 +212,7 @@ export const doctorApplicationReview = async (req, res) => {
     if (status === 'approved') {
       await User.findByIdAndUpdate(application.user, { role: 'doctor' });
 
-      // Check if a DoctorProfile already exists for this user to avoid duplicate creation errors
+      // Check if a DoctorProfile already exists 
       const existingProfile = await DoctorProfile.findOne({ user: application.user });
       
       if (!existingProfile) {

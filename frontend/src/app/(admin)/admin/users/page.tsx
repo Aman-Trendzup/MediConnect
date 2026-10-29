@@ -30,7 +30,7 @@ interface User {
   createdAt?: string;
 }
 
-// 1. Inner component handling all state, hooks, and UI markup
+//  Inner component handling all state, hooks, and UI markup
 function UserManagementContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -216,7 +216,7 @@ function UserManagementContent() {
           <div className="overflow-x-auto">
             <div className="min-w-[800px]">
               
-              {/* Table Header (5 Columns: Name, Email, Registration Date, Account Status, Actions) */}
+              {/* Table Header */}
               <div className="grid grid-cols-5 bg-slate-200/70 rounded-xl p-3 text-xs font-bold text-slate-700 text-center mb-3">
                 <span>{isDoctor ? 'Doctor Name' : 'Patient Name'}</span>
                 <span>Email Id</span>
@@ -261,7 +261,7 @@ function UserManagementContent() {
                           </span>
                         </div>
 
-                        {/* Action Buttons: View Profile, Open Status Modal, Delete */}
+                        {/* Action Buttons */}
                         <div className="flex items-center justify-center gap-1">
                           <button 
                             onClick={() => router.push(`/admin/users/${user._id}`)}
@@ -396,7 +396,7 @@ function UserManagementContent() {
   );
 }
 
-// 2. Default exported page component that wraps the content in <Suspense>
+// Default exported page component that wraps the content in <Suspense>
 export default function UserManagementPage() {
   return (
     <DashboardWrapper>

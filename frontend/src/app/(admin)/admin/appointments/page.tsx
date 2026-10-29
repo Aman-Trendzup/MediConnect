@@ -17,7 +17,6 @@ interface Appointment {
   doctor?: { name: string; email: string };
 }
 
-// 1. Inner component handling all state, hooks, and UI markup
 function AppointmentMonitoringContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -31,7 +30,7 @@ function AppointmentMonitoringContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchInput, setSearchInput] = useState<string>(searchQuery);
 
-  // Fetch appointments from backend API based on query parameters using adminApi
+  // Fetch appointments from backend API 
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true);
@@ -152,7 +151,7 @@ function AppointmentMonitoringContent() {
           <div className="overflow-x-auto">
             <div className="min-w-[800px]">
               
-              {/* Table Column Headers (5 Evenly Distributed Columns) */}
+              {/* Table Column Headers  */}
               <div className="grid grid-cols-5 bg-slate-200/70 rounded-xl p-3 text-xs font-bold text-slate-700 text-center mb-3">
                 <span>Patient</span>
                 <span>Doctor</span>
@@ -215,7 +214,7 @@ function AppointmentMonitoringContent() {
   );
 }
 
-// 2. Default exported page component that wraps the content in <Suspense>
+// Default exported page component that wraps the content in <Suspense>
 export default function AppointmentMonitoringPage() {
   return (
     <DashboardWrapper>

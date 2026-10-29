@@ -33,7 +33,7 @@ export default function RegisterPage() {
     try {
       setIsSubmitting(true);
       
-      // Call the Zustand register action (which delegates to authApi.js)
+      // Call the Zustand register action 
       const res = await register({ 
         name: name.trim(), 
         email: email.trim().toLowerCase(), 
@@ -41,7 +41,7 @@ export default function RegisterPage() {
       });
 
       if (res?.success) {
-        // Retrieve user or nested payload structure to check role
+        // Retrieve user to check role
         const user = res.user || res.data?.user || res.data;
         const role = user?.role;
 

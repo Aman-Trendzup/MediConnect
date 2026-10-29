@@ -69,7 +69,7 @@ export default function ServiceCategoriesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Handle Add / Edit Submission using Axios
+  // Handle Add / Edit Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryName.trim()) {

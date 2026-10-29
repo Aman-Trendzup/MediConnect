@@ -23,7 +23,7 @@ interface AuditLog {
   details?: string;
 }
 
-// 1. Inner component handling all state, hooks, and UI markup
+//  Inner component handling all state, hooks, and UI markup
 function AuditLogsContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -197,7 +197,7 @@ function AuditLogsContent() {
   );
 }
 
-// 2. Default exported page component that wraps the content in <Suspense>
+//  Default exported page component that wraps the content in <Suspense>
 export default function AuditLogsPage() {
   return (
     <DashboardWrapper>

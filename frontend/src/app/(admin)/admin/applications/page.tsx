@@ -27,11 +27,10 @@ interface Application {
   };
 }
 
-// 1. Put all your hooks, state, and UI markup inside this inner component
 function DoctorApplicationsContent() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams(); // Safe because it's wrapped below!
+  const searchParams = useSearchParams(); 
 
   const currentStatus = searchParams.get('status') || 'pending';
   const searchQuery = searchParams.get('search') || '';
@@ -299,7 +298,7 @@ function DoctorApplicationsContent() {
   );
 }
 
-// 2. Default exported page component that wraps the content in <Suspense>
+//Default exported page component that wraps the content in <Suspense>
 export default function DoctorApplicationsPage() {
   return (
     <DashboardWrapper>
