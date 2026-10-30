@@ -28,11 +28,9 @@ export default function LoginPage() {
     try {
       setIsSubmitting(true);
       
-      // Call the Zustand login action (which delegates to authApi.js)
       const res = await login({ email, password });
 
       if (res?.success) {
-        // Retrieve user or nested payload structure
         const user = res.user || res.data?.user || res.data;
         const role = user?.role;
 
