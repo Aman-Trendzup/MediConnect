@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { DashboardWrapper } from '@/components/dashboardWrapper';
+import { DashboardWrapper } from '@/components/adminDashboardWrapper';
 import { adminApi } from '@/services/adminApi';
 import { Eye, Search, Loader2, CheckCircle2, XCircle, AlertCircle, Clock, X, AlertTriangle } from 'lucide-react';
 

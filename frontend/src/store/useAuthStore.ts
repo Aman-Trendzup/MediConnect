@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { getCurrentUser, loginUser, registerUser, logoutUser } from '@/services/authApi';
 
 export interface User {
@@ -19,50 +20,59 @@ interface AuthState {
   logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  loading: true,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      loading: true,
 
-  // Verify HttpOnly cookie session on app startup
-  checkAuth: async () => {
-    try {
-      set({ loading: true });
-      const res = await getCurrentUser();
-      if (res?.success) {
-        set({ user: res.user || res.data?.user || res.data, loading: false });
-      } else {
-        set({ user: null, loading: false });
-      }
-    } catch (error) {
-      set({ user: null, loading: false });
-    }
-  },
+      // Verify HttpOnly cookie session on app startup
+      checkAuth: async () => {
+        try {
+          set({ loading: true });
+          const res = await getCurrentUser();
+          if (res?.success) {
+            set({ user: res.user || res.data?.user || res.data, loading: false });
+          } else {
+            set({ user: null, loading: false });
+          }
+        } catch (error) {
+          set({ user: null, loading: false });
+        }
+      },
 
-  login: async (credentials) => {
-    const res = await loginUser(credentials);
-    if (res?.success) {
-      const user = res.user || res.data?.user || res.data;
-      set({ user });
-    }
-    return res;
-  },
+      login: async (credentials) => {
+        const res = await loginUser(credentials);
+        if (res?.success) {
+          const user = res.user || res.data?.user || res.data;
+          set({ user });
+        }
+        return res;
+      },
 
-  register: async (userData) => {
-    const res = await registerUser(userData);
-    if (res?.success) {
-      const user = res.user || res.data?.user || res.data;
-      set({ user });
-    }
-    return res;
-  },
+      register: async (userData) => {
+        const res = await registerUser(userData);
+        if (res?.success) {
+          const user = res.user || res.data?.user || res.data;
+          set({ user });
+        }
+        return res;
+      },
 
-  logout: async () => {
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      set({ user: null, loading: false });
+      logout: async () => {
+        try {
+          await logoutUser();
+        } catch (error) {
+          console.error('Logout failed:', error);
+        } finally {
+          set({ user: null, loading: false });
+        }
+      },
+    }),
+    {
+      name: 'mediconnect-auth-storage', 
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user }), 
     }
-  },
-}));
+  )
+);

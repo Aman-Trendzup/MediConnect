@@ -264,7 +264,7 @@ export const getUsers = async (req, res) => {
       if (!validRoles.includes(role)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid role filter provided."
+          message: "Invalid role filter provided"
         });
       }
       filter.role = role;
@@ -275,7 +275,7 @@ export const getUsers = async (req, res) => {
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid status filter provided."
+          message: "Invalid status filter provided"
         });
       }
       filter.status = status;
@@ -286,7 +286,7 @@ export const getUsers = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: role ? `Successfully fetched ${role}s.` : "Successfully fetched all users.",
+      message: role ? `Successfully fetched ${role}s.` : "Successfully fetched all users",
       count: users.length,
       users
     });
@@ -295,7 +295,7 @@ export const getUsers = async (req, res) => {
     console.log(error.message);
     return res.status(500).json({
       success: false, 
-      message: "An error occurred while fetching users.",
+      message: "An error occurred while fetching users",
     });
   }
 };

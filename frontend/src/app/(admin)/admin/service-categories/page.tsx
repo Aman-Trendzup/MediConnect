@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { DashboardWrapper } from '@/components/dashboardWrapper';
+import { DashboardWrapper } from '@/components/adminDashboardWrapper';
 import { adminApi } from '@/services/adminApi'; 
 import { 
   Search, 

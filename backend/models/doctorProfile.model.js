@@ -9,7 +9,7 @@ const doctorProfileSchema = new mongoose.Schema({
      },
   specialization: { 
     type: mongoose.Schema.Types.ObjectId,
-     ref: 'ServiceCategory',
+     ref: 'Service',
       required: [true,"specialization is required"]
      },
   qualifications: [

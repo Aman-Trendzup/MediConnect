@@ -6,6 +6,7 @@ import cors from 'cors';
 import connectDB from './database/db.js';
 import adminRoutes from './routes/adminRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import doctorRoutes from './routes/doctorRoutes.js';
 
 
 dotenv.config();
@@ -51,8 +52,9 @@ app.use(cors({
 
 
 //routes
-app.use("/api/admin",adminRoutes);
 app.use("/api/auth",authRoutes);
+app.use("/api/admin",adminRoutes);
+app.use("/api/doctor",doctorRoutes);
 
 
 //404 handler

@@ -95,16 +95,6 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
 
         {/* TOP RIGHT CONTROLS */}
         <div className="flex items-center gap-4">
-          
-          {/* Search Box */}
-          <div className="hidden sm:block relative w-56 md:w-64">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full rounded-xl bg-slate-800/80 border border-slate-700 py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-400 outline-none focus:border-primary transition"
-            />
-          </div>
 
           {/* Profile Dropdown Menu */}
           <div className="relative">
@@ -112,22 +102,19 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className="flex items-center gap-2.5 rounded-full p-1.5 transition hover:bg-slate-800 focus:outline-none cursor-pointer"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-white font-bold text-xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dbeafe] text-[#2563eb] font-bold text-sm">
                 {displayName.charAt(0).toUpperCase()}
               </div>
-              <span className="hidden sm:inline-block text-xs font-semibold text-white truncate max-w-[120px]">
-                {displayName}
-              </span>
             </button>
 
             {isProfileMenuOpen && (
               <div
-                className="absolute right-0 mt-2 w-60 rounded-2xl border border-slate-700 bg-primary py-2 px-2 shadow-2xl ring-1 ring-black/10 z-50"
+                className="absolute right-0 mt-2 w-60 rounded-lg border border-slate-700 bg-white py-1 px-1 shadow-2xl ring-1 ring-black/10 z-50"
                 onMouseLeave={() => setIsProfileMenuOpen(false)}
               >
                 <div className="border-b border-slate-700/80 px-3 py-2.5">
-                  <p className="text-xs font-bold text-white truncate">{displayName}</p>
-                  <p className="truncate text-[11px] text-slate-400 mt-0.5">{displayEmail}</p>
+                  <p className="text-xs font-bold text-slate-800 truncate">{displayName}</p>
+                  <p className="truncate text-[11px] text-slate-800 mt-0.5">{displayEmail}</p>
                 </div>
                 <div className="pt-1">
                   <button
@@ -169,13 +156,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/dashboard"
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/dashboard') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Dashboard' : undefined}
             >
               <div className="flex items-center gap-3">
-                <LayoutDashboard className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <LayoutDashboard className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/dashboard') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                   Dashboard
                 </span>
@@ -187,13 +174,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/users?role=doctor" 
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/users', 'doctor') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                 ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Doctors' : undefined}
             >
               <div className="flex items-center gap-3">
-                <HeartHandshake className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/users', 'doctor') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <HeartHandshake className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/users', 'doctor') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                   Doctors
                 </span>
@@ -205,13 +192,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/users?role=patient" 
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/users', 'patient') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Patients' : undefined}
             >
               <div className="flex items-center gap-3">
-                <Users className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/users', 'patient') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <Users className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/users', 'patient') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                   Patients
                 </span>
@@ -223,13 +210,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/applications"
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/applications') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Applications' : undefined}
             >
               <div className="flex items-center gap-3">
-                <AppWindow className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/applications') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <AppWindow className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/applications') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                   Applications
                 </span>
@@ -241,13 +228,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/service-categories"
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/service-categories') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Service Categories' : undefined}
             >
               <div className="flex items-center gap-3">
-                <BriefcaseBusiness className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/service-categories') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <BriefcaseBusiness className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/service-categories') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                   Service Categories
                 </span>
@@ -259,13 +246,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/appointments"
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/appointments') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                 ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Appointments' : undefined}
             >
               <div className="flex items-center gap-3">
-                <CalendarDays className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/appointments') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <CalendarDays className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/appointments') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                   Appointments
                 </span>
@@ -277,13 +264,13 @@ function DashboardWrapperContent({ children }: DashboardComponentProps) {
               href="/admin/audit-logs"
               className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
                 isActiveLink('/admin/audit-logs') 
-                  ? 'bg-slate-800 text-white shadow-inner border border-slate-700' 
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                 ? 'bg-[#eff6ff] text-primary shadow-inner border border-slate-700' 
+                  : 'text-white hover:bg-slate-800 hover:text-secondary'
               }`}
               title={!isSidebarOpen ? 'Audit Logs' : undefined}
             >
               <div className="flex items-center gap-3">
-                <RotateCcwClock className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/audit-logs') ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                <RotateCcwClock className={`h-4 w-4 shrink-0 ${isActiveLink('/admin/audit-logs') ? 'text-primary' : 'text-slate-400 group-hover:text-secondary'}`} />
                 <span className={`${!isSidebarOpen && 'lg:hidden'} truncate`}>
                    Audit Logs
                 </span>

@@ -37,4 +37,9 @@ const appointmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
+appointmentSchema.index(
+  { doctor: 1, appointmentDate: 1, timeSlot: 1 }, 
+  { unique: true }
+);
+
 export const Appointment = mongoose.model('Appointment', appointmentSchema);

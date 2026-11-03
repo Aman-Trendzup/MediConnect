@@ -16,7 +16,7 @@ import  {
      deleteServiceCategory,
      getAuditLogs
     } from '../controllers/admin.controller.js';
-import verifyAdminToken from '../middleware/verifyAdminToken.js';
+import verifyAdminToken from '../middleware/verifyAdminToken.middleware.js';
 
 const router = express.Router();
 

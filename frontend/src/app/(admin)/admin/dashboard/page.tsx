@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { DashboardWrapper } from '@/components/dashboardWrapper';
+import { DashboardWrapper } from '@/components/adminDashboardWrapper';
 import { adminApi } from '@/services/adminApi';
 import { 
   Users, 
@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
                 Applications Summary
               </div>
               <Link href="/admin/applications"
-                className="flex items-center gap-1 rounded-full bg-primary hover:bg-secondary text-white px-3.5 py-1 text-xs font-bold transition">
+                className="flex items-center gap-1 rounded-full bg-primary hover:bg-secondary text-white  hover:text-primary px-3.5 py-1 text-xs font-bold transition">
                 view all
                 <ArrowUpRight className="h-3 w-3" />
               </Link>
@@ -231,7 +231,7 @@ export default function AdminDashboardPage() {
                 Recent Appointments
               </div>
               <Link href="/admin/appointments"
-                className="flex items-center gap-1 rounded-full bg-primary hover:bg-secondary text-white px-3.5 py-1 text-xs font-bold transition">
+                className="flex items-center gap-1 rounded-full bg-primary hover:bg-secondary text-white hover:text-primary px-3.5 py-1 text-xs font-bold transition">
                 view all
                 <ArrowUpRight className="h-3 w-3" />
               </Link>
@@ -292,7 +292,7 @@ export default function AdminDashboardPage() {
                 Audit Logs
               </span>   
               <Link href="/admin/audit-logs"
-                className="flex items-center gap-1 rounded-full bg-primary hover:bg-secondary text-white px-3.5 py-1 text-xs font-bold transition">
+                className="flex items-center gap-1 rounded-full bg-primary hover:bg-secondary text-white hover:text-primary px-3.5 py-1 text-xs font-bold transition">
                 view all
                 <ArrowUpRight className="h-3 w-3" />
               </Link>

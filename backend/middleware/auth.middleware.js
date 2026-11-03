@@ -35,24 +35,3 @@ export const authMiddleware = async (req, res, next) => {
   }
 };
 
-//  role-based access control
-export const authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required.",
-      });
-    }
-
-    // Check if logged-in user's role is allowed 
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Role (${req.user.role}) is not authorized to access this resource.`,
-      });
-    }
-    next();
-  };
-};
