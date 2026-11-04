@@ -17,11 +17,10 @@ export const adminApi = {
     return response.data;
   },
 
-  reviewDoctorApplication: async (id, reviewData) => {
+reviewDoctorApplication: async (id, reviewData) => {
     const response = await api.patch(`/api/admin/applications/${id}/review`, reviewData);
     return response.data;
   },
-
  
   getUsers: async (params = {}) => {
     const response = await api.get('/api/admin/users', { params });

@@ -1,5 +1,4 @@
 import type { Config as TailwindConfig } from "tailwindcss";
-import daisyui from "daisyui";
 
 // 1. Explicitly extend Tailwind's config to include daisyui definitions
 interface CustomConfig extends TailwindConfig {
@@ -25,10 +24,9 @@ const config: CustomConfig = {
   theme: {
     extend: {},
   },
-  plugins: [daisyui],
-  daisyui: {
-    themes: ["light", "dark"],
-  },
-};
+  plugins: [],
+
+  }
+;
 
 export default config;

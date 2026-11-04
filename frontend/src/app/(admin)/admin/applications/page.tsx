@@ -42,7 +42,7 @@ function DoctorApplicationsContent() {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [targetStatus, setTargetStatus] = useState<'approved' | 'rejected' | 'needs_correction'>('approved');
+  const [targetStatus, setTargetStatus] = useState<'rejected' | 'needs_correction'>('rejected');
   const [commentInput, setCommentInput] = useState<string>('');
   const [submittingReview, setSubmittingReview] = useState<boolean>(false);
 
@@ -87,10 +87,30 @@ function DoctorApplicationsContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const openReviewModal = (app: Application, status: 'approved' | 'rejected' | 'needs_correction') => {
+  // Handle direct approval without opening modal
+  const handleApproveDirectly = async (app: Application) => {
+    setActionLoadingId(app._id);
+    try {
+      const payload = { status: 'approved' };
+      const data = await adminApi.reviewDoctorApplication(app._id, payload);
+
+      if (data.success) {
+        fetchApplications();
+      } else {
+        alert(data.message || 'Failed to approve application');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'An unexpected error occurred.');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Open modal only for Rejections and Needs Correction
+  const openReviewModal = (app: Application, status: 'rejected' | 'needs_correction') => {
     setSelectedApp(app);
     setTargetStatus(status);
-    setCommentInput(status === 'approved' ? 'Application approved successfully.' : '');
+    setCommentInput('');
     setIsModalOpen(true);
   };
 
@@ -98,14 +118,24 @@ function DoctorApplicationsContent() {
     e.preventDefault();
     if (!selectedApp) return;
 
+    if (!commentInput.trim()) {
+      alert(targetStatus === 'rejected' ? 'Please provide a rejection reason.' : 'Please specify what information needs correction.');
+      return;
+    }
+
     setSubmittingReview(true);
     setActionLoadingId(selectedApp._id);
 
     try {
-      const data = await adminApi.reviewDoctorApplication(selectedApp._id, { 
-        status: targetStatus, 
-        comment: commentInput || `Application status updated to ${targetStatus}` 
-      });
+      const payload: any = { status: targetStatus };
+
+      if (targetStatus === 'rejected') {
+        payload.rejectionReason = commentInput.trim();
+      } else if (targetStatus === 'needs_correction') {
+        payload.correctionReason = commentInput.trim();
+      }
+
+      const data = await adminApi.reviewDoctorApplication(selectedApp._id, payload);
 
       if (data.success) {
         setIsModalOpen(false);
@@ -199,6 +229,7 @@ function DoctorApplicationsContent() {
                 ? new Date(app.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
                 : 'Recent';
               const isActionLoading = actionLoadingId === app._id;
+              const isApproved = app.status === 'approved';
 
               return (
                 <div key={app._id} className="flex flex-col justify-between rounded-2xl border border-slate-300 bg-white p-5 shadow-2xs transition hover:border-slate-400">
@@ -213,7 +244,7 @@ function DoctorApplicationsContent() {
                           <p className="text-xs text-slate-500 truncate mt-0.5">{doctorEmail}</p>
                           <p className="text-[11px] font-medium text-slate-400 flex items-center gap-1 mt-0.5">
                             <span>Submitted: {formattedDate}</span>
-                            {app.experienceYears && <span>• {app.experienceYears} yrs exp</span>}
+                            {app.experienceYears && <span> • {app.experienceYears} yrs exp</span>}
                           </p>
                         </div>
                       </div>
@@ -235,6 +266,7 @@ function DoctorApplicationsContent() {
                     )}
                   </div>
 
+                  {/* ACTION BUTTONS */}
                   <div className="flex items-center gap-2 pt-3 border-t border-slate-200">
                     <button 
                       onClick={() => router.push(`/admin/applications/${app._id}`)}
@@ -242,20 +274,33 @@ function DoctorApplicationsContent() {
                     >
                       <Eye className="h-3.5 w-3.5" /> Details
                     </button>
-                    <button 
-                      onClick={() => openReviewModal(app, 'approved')}
-                      disabled={isActionLoading || app.status === 'approved'}
-                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition disabled:opacity-50 cursor-pointer"
-                    >
-                      {isActionLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Approve
-                    </button>
-                    <button 
-                      onClick={() => openReviewModal(app, 'rejected')}
-                      disabled={isActionLoading || app.status === 'rejected'}
-                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 py-2 text-xs font-bold text-white shadow-sm hover:bg-rose-700 transition disabled:opacity-50 cursor-pointer"
-                    >
-                      {isActionLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Reject
-                    </button>
+
+                    {/* ONLY SHOW ACTION BUTTONS IF NOT APPROVED */}
+                    {!isApproved && (
+                      <>
+                        <button 
+                          onClick={() => openReviewModal(app, 'needs_correction')}
+                          disabled={isActionLoading || app.status === 'needs_correction'}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-600 transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isActionLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Correction
+                        </button>
+                        <button 
+                          onClick={() => handleApproveDirectly(app)}
+                          disabled={isActionLoading}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isActionLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Approve
+                        </button>
+                        <button 
+                          onClick={() => openReviewModal(app, 'rejected')}
+                          disabled={isActionLoading || app.status === 'rejected'}
+                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 py-2 text-xs font-bold text-white shadow-sm hover:bg-rose-700 transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {isActionLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Reject
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -264,13 +309,14 @@ function DoctorApplicationsContent() {
         )}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL (Only for Rejections and Needs Correction) */}
       {isModalOpen && selectedApp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-300">
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200">
-              <h3 className="text-sm font-extrabold text-slate-900 uppercase">
-                {targetStatus === 'approved' ? 'Approve Application' : 'Reject Application'}
+              <h3 className="text-sm font-extrabold text-slate-900 uppercase flex items-center gap-2">
+                {targetStatus === 'needs_correction' && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+                {targetStatus === 'needs_correction' ? 'Request Correction' : 'Reject Application'}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 cursor-pointer">
                 <X className="h-4 w-4" />
@@ -278,17 +324,29 @@ function DoctorApplicationsContent() {
             </div>
             <form onSubmit={handleConfirmReview} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">Reason / Note</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase">
+                  {targetStatus === 'rejected' ? 'Rejection Reason *' : 'Correction Details / Instructions *'}
+                </label>
                 <textarea 
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 px-3.5 text-xs font-medium text-slate-900 outline-none"
+                  placeholder={targetStatus === 'rejected' ? 'Explain why this application is being rejected...' : 'Specify what documents or fields need correction...'}
+                  rows={4}
+                  required
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 px-3.5 text-xs font-medium text-slate-900 outline-none focus:border-slate-500"
                 />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 cursor-pointer">Cancel</button>
-                <button type="submit" disabled={submittingReview} className="rounded-xl bg-slate-800 px-5 py-2 text-xs font-bold text-white cursor-pointer">Confirm</button>
+                <button 
+                  type="submit" 
+                  disabled={submittingReview} 
+                  className={`rounded-xl px-5 py-2 text-xs font-bold text-white cursor-pointer ${
+                    targetStatus === 'needs_correction' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  {submittingReview ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Confirm'}
+                </button>
               </div>
             </form>
           </div>
@@ -298,7 +356,6 @@ function DoctorApplicationsContent() {
   );
 }
 
-//Default exported page component that wraps the content in <Suspense>
 export default function DoctorApplicationsPage() {
   return (
     <DashboardWrapper>
