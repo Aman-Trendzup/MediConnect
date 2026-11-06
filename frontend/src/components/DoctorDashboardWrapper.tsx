@@ -11,6 +11,7 @@ import {
   Bell, 
   PanelLeft, 
   PanelLeftClose,
+  HeartPulse,
   ChevronDown,
   LogOut,
   User as UserIcon
@@ -22,7 +23,6 @@ const navigation = [
   { label: "My Profile", href: "/doctor/profile", icon: <CircleUser /> },
   { label: "Availability & Slots", href: "/doctor/availability", icon: <ClockCheck /> },
   { label: "Appointments", href: "/doctor/appointments", icon: <Calendar /> },
-  { label: "Notifications", href: "/doctor/notifications", icon: <Bell /> },
 ];
 
 interface DoctorDashboardWrapperProps {
@@ -83,12 +83,12 @@ export default function DoctorDashboardWrapper({
       >
         {/* Brand */}
         <div className="flex h-[80px] shrink-0 items-center gap-3 px-6 md:px-7">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563eb] text-xl font-bold text-white shadow-sm">
-            M
-          </div>
+        <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white text-[#16587b] shadow-md transition-transform duration-300 group-hover:scale-105">
+              <HeartPulse className="h-5 w-5 sm:h-6 sm:w-6 text-[#84b3ce]" />
+            </div>
 
           <Link
-            href="/doctor/dashboard"
+            href="/"
             onClick={() => setMobileMenuOpen(false)}
             className={`text-[21px] font-bold tracking-tight text-white transition-opacity duration-200 ${
               desktopCollapsed ? "md:hidden" : "block"
@@ -131,14 +131,14 @@ export default function DoctorDashboardWrapper({
         </div>
       </aside>
 
-      {/* Main Content Area (Offset by fixed sidebar width on desktop) */}
+      {/* Main Content Area */}
       <div
         className={`flex min-h-screen min-w-0 flex-1 flex-col transition-all duration-300 ${
           desktopCollapsed ? "md:pl-[88px]" : "md:pl-[280px]"
         }`}
       >
         {/* Sticky Navbar */}
-        <header className="sticky top-0 z-30 flex h-[80px] items-center justify-between border-b border-white bg-primary px-5 backdrop-blur-md md:px-9">
+        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white bg-primary px-5 backdrop-blur-md md:px-9">
           {/* Left section */}
           <div className="flex min-w-0 items-center gap-3 md:gap-5">
             <button
@@ -157,7 +157,7 @@ export default function DoctorDashboardWrapper({
             </button>
           </div>
 
-          {/* Right section: Profile Dropdown (Initial Letter Only) */}
+          {/* Profile Dropdown  */}
           <div className="relative ml-3 flex shrink-0 items-center gap-3 md:gap-5" ref={dropdownRef}>
             <button
               type="button"
@@ -171,10 +171,10 @@ export default function DoctorDashboardWrapper({
 
             {/* User Dropdown Menu (Shows Name & Email) */}
             {userDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 origin-top-right rounded-2xl border border-[#e2e8f0] bg-white p-2 shadow-xl">
-                <div className="border-b border-[#e2e8f0] px-4 py-3">
-                  <p className="text-sm font-bold text-[#172033]">{displayName}</p>
-                  <p className="truncate text-xs text-[#64748b]">{displayEmail}</p>
+              <div className="absolute right-0 mt-2 w-60 rounded-lg border border-slate-700 bg-white py-1 px-1 shadow-2xl ring-1 ring-black/10 z-50">
+                <div className="border-b border-slate-700/80 px-3 py-2.5">
+                  <p className="text-xs font-bold text-slate-800">{displayName}</p>
+                  <p className="text-xs text-[#64748b]">{displayEmail}</p>
                 </div>
 
                 <div className="py-1">

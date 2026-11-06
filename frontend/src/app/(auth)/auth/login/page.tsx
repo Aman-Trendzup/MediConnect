@@ -64,27 +64,27 @@ export default function LoginPage() {
       >
         {/* BRAND / HEADER */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-black text-primary tracking-tight">
+          <h1 className="text-3xl font-black text-primary tracking-tight">
             MediConnect
           </h1>
-          <p className="text-xs font-semibold text-slate-500 mt-1">
+          <p className="text-sm font-semibold text-slate-500 mt-1">
             Sign in to access your account
           </p>
         </div>
 
         {/* EMAIL INPUT */}
         <div className="w-full mb-4">
-          <label className="text-xs font-bold text-slate-700 mb-1.5 block">
+          <label className="text-sm font-bold text-slate-700 mb-1.5 block">
             Email Address
           </label>
           <div className="relative w-full">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs transition"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs transition"
               required
             />
           </div>
@@ -92,17 +92,17 @@ export default function LoginPage() {
 
         {/* PASSWORD INPUT */}
         <div className="w-full mb-4">
-          <label className="text-xs font-bold text-slate-700 mb-1.5 block">
+          <label className="text-sm font-bold text-slate-700 mb-1.5 block">
             Password
           </label>
           <div className="relative w-full">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-10 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs transition"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-10 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs transition"
               required
             />
             <button
@@ -126,7 +126,7 @@ export default function LoginPage() {
 
         {/* SUBMIT BUTTON */}
         <button
-          className="w-full rounded-xl bg-primary border border-slate-900 text-white font-bold text-xs py-3 px-4 shadow-sm hover:bg-slate-800 transition cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-2 mb-4"
+          className="w-full rounded-xl bg-primary border border-slate-900 text-white font-bold text-sm py-3 px-4 shadow-sm hover:bg-slate-800 transition cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-2 mb-4"
           type="submit"
           disabled={isSubmitting}
         >

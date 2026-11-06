@@ -442,20 +442,58 @@ export const updateUserStatus = async (req, res) => {
 //GET /api/admin/appointments
 export const getAppointments = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, search, page = 1, limit = 10 } = req.query;
     const filter = {};
-    if (status) filter.status = status;
 
-    const appointments = await Appointment.find(filter)
-      .populate('patient', 'name email')
-      .populate('doctor', 'name email')
-      .sort({ createdAt: -1 });
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    if (search) {
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ]
+      }).select('_id');
+
+      const userIds = matchingUsers.map(u => u._id);
+
+      filter.$or = [
+        { patient: { $in: userIds } },
+        { doctor: { $in: userIds } },
+      ];
+    }
+
+    const [appointments, totalAppointments] = await Promise.all([
+      Appointment.find(filter)
+        .populate('patient', 'name email')
+        .populate('doctor', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Appointment.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalAppointments / limitNum);
 
     return res.status(200).json({
       success: true,
       message: "Appointments fetched successfully",
       count: appointments.length,
-      data: appointments
+      pagination: {
+        totalAppointments,
+        totalPages,
+        currentPage: pageNum,
+        limit: limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+      data: appointments,
     });
 
   } catch (error) {
@@ -643,22 +681,40 @@ export const deleteServiceCategory = async (req, res) => {
 //GET /api/admin/audit-logs
 export const getAuditLogs = async (req, res) => {
   try {
-  const logs = await AuditLog.find({})
-      .populate('user', 'name email role') 
-      .sort({ createdAt: -1 })             
-      .limit(100);                         
+    const { page = 1, limit = 10 } = req.query;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [logs, totalLogs] = await Promise.all([
+      AuditLog.find({})
+        .populate('user', 'name email role') 
+        .sort({ createdAt: -1 })            
+        .skip(skip)
+        .limit(limitNum),
+      AuditLog.countDocuments({}),
+    ]);
+
+    const totalPages = Math.ceil(totalLogs / limitNum);
 
     return res.status(200).json({
       success: true,
       count: logs.length,
-      logs
+      pagination: {
+        totalLogs,
+        totalPages,
+        currentPage: pageNum,
+        limit: limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+      logs,
     });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({
       success: false,
-      message: "an error occured while fetching audit logs"
-    })
+      message: "An error occurred while fetching audit logs",
+    });
   }
-}
-
+};

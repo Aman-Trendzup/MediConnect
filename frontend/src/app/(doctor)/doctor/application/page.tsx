@@ -1,12 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { submitDoctorApplication } from "@/services/doctorApi";
+import { publicApi } from "@/services/publicApi";
+
+interface ServiceModel {
+  _id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+}
 
 export default function DoctorApplicationPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Services list fetched from backend
+  const [services, setServices] = useState<ServiceModel[]>([]);
+  const [isFetchingServices, setIsFetchingServices] = useState(true);
 
   // Form State mapped directly to MongoDB schema fields
   const [formData, setFormData] = useState({
@@ -26,8 +38,34 @@ export default function DoctorApplicationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle standard text inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch available services on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadServices() {
+      try {
+        setIsFetchingServices(true);
+        const response = await publicApi.getServices();
+        if (isMounted && response?.success && Array.isArray(response.services)) {
+          // Filter only active services if required
+          const activeServices = response.services.filter((s: ServiceModel) => s.isActive !== false);
+          setServices(activeServices);
+        }
+      } catch (err) {
+        console.error("Failed to fetch services list:", err);
+        setError("Could not load specialties list. Please refresh the page.");
+      } finally {
+        if (isMounted) setIsFetchingServices(false);
+      }
+    }
+
+    loadServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handle standard text / select inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError(null); // Clear error on typing
@@ -46,7 +84,7 @@ export default function DoctorApplicationPage() {
     }
   };
 
-  // Step validation check before proceeding (displays inline error instead of alert)
+  // Step validation check before proceeding
   const validateStep = (step: number): boolean => {
     if (step === 1) {
       if (
@@ -149,6 +187,12 @@ export default function DoctorApplicationPage() {
     { number: 4, title: "Review & Submit" },
   ];
 
+  // Find label of selected specialization for the final step view
+  const selectedServiceObj = services.find(
+    (s) => s._id === formData.specialization || s.name === formData.specialization
+  );
+  const displaySpecializationName = selectedServiceObj ? selectedServiceObj.name : formData.specialization;
+
   return (
     <main className="min-h-screen bg-[#F7F9FC] px-5 py-8 text-[#172033] sm:py-12">
       <div className="mx-auto max-w-3xl">
@@ -226,15 +270,23 @@ export default function DoctorApplicationPage() {
                   <label className="mb-1.5 block text-xs font-bold text-[#344054] uppercase tracking-wide">
                     Specialization *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="specialization"
                     required
-                    placeholder="e.g. Dermatology or Specialization ID"
                     value={formData.specialization}
                     onChange={handleChange}
-                    className="w-full rounded-xl border border-[#DCE2EA] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
-                  />
+                    disabled={isFetchingServices}
+                    className="w-full rounded-xl border border-[#DCE2EA] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] disabled:bg-slate-100"
+                  >
+                    <option value="">
+                      {isFetchingServices ? "Loading specialties..." : "-- Select Specialization --"}
+                    </option>
+                    {services.map((service) => (
+                      <option key={service._id} value={service._id}>
+                        {service.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -408,7 +460,7 @@ export default function DoctorApplicationPage() {
               <div className="rounded-xl bg-slate-50 p-5 space-y-4 text-sm">
                 <div>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Professional Credentials</h3>
-                  <p className="mt-1 font-semibold text-[#172033]">{formData.specialization}</p>
+                  <p className="mt-1 font-semibold text-[#172033]">{displaySpecializationName}</p>
                   <p className="text-xs text-slate-600">Qualifications: {formData.qualifications}</p>
                   <p className="text-xs text-slate-600">Experience: {formData.experienceYears} Years | Fee: ₹{formData.consultationFee}</p>
                 </div>
@@ -418,7 +470,7 @@ export default function DoctorApplicationPage() {
                 <div>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Clinic Address</h3>
                   <p className="mt-1 text-xs font-medium text-[#172033]">
-                    {formData.street}, {formData.city}, {formData.state} - {formData.pincode}
+                    {formData.street}, {formData.city}, {formData.state} — {formData.pincode}
                   </p>
                 </div>
 

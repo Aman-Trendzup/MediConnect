@@ -4,17 +4,28 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { DashboardWrapper } from '@/components/adminDashboardWrapper';
 import { adminApi } from '@/services/adminApi';
-import { Search, Loader2, Clock, CheckCircle2, XCircle, CalendarCheck2 } from 'lucide-react';
+import { Search, Loader2, Clock, CheckCircle2, XCircle, CalendarCheck2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Appointment {
   _id: string;
   patientName?: string;
   doctorName?: string;
   dateTime?: string;
+  appointmentDate?: string;
+  timeSlot?: string;
   type?: string;
   status: 'pending' | 'accepted' | 'completed' | 'cancelled';
   patient?: { name: string; email: string };
   doctor?: { name: string; email: string };
+}
+
+interface PaginationMeta {
+  totalAppointments: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 function AppointmentMonitoringContent() {
@@ -25,35 +36,39 @@ function AppointmentMonitoringContent() {
   // Read URL query parameters
   const currentStatus = searchParams.get('status') || 'all';
   const searchQuery = searchParams.get('search') || '';
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const limit = 10;
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchInput, setSearchInput] = useState<string>(searchQuery);
 
   // Fetch appointments from backend API 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      setLoading(true);
-      try {
-        const params: any = {};
-        if (currentStatus && currentStatus !== 'all') params.status = currentStatus;
-        if (searchQuery) params.search = searchQuery;
+  const fetchAppointments = async () => {
+    setLoading(true);
+    try {
+      const params: any = { page: currentPage, limit };
+      if (currentStatus && currentStatus !== 'all') params.status = currentStatus;
+      if (searchQuery) params.search = searchQuery;
 
-        const data = await adminApi.getAppointments(params);
-        if (data.success) {
-          setAppointments(data.appointments || data.data || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch appointments:", error);
-      } finally {
-        setLoading(false);
+      const data = await adminApi.getAppointments(params);
+      if (data.success) {
+        setAppointments(data.appointments || data.data || []);
+        setPagination(data.pagination || null);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAppointments();
-  }, [currentStatus, searchQuery]);
+  }, [currentStatus, searchQuery, currentPage]);
 
-  // Update URL query parameters cleanly
+  // Update URL query parameters cleanly (Resets page to 1 on filter/search changes)
   const updateQueryParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value && value !== 'all') {
@@ -61,6 +76,16 @@ function AppointmentMonitoringContent() {
     } else {
       params.delete(key);
     }
+    // Reset to page 1 when filtering or searching
+    if (key !== 'page') {
+      params.set('page', '1');
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(newPage));
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -79,7 +104,7 @@ function AppointmentMonitoringContent() {
       
       {/* PAGE TITLE HEADER */}
       <div>
-        <div className="inline-flex items-center px-4 py-2 text-sm font-bold tracking-wide uppercase text-primary">
+        <div className="inline-flex items-center px-4 py-1 text-sm font-bold tracking-wide uppercase text-primary">
           Monitor Doctor-Patient Appointments
         </div>
       </div>
@@ -89,16 +114,9 @@ function AppointmentMonitoringContent() {
         
         {/* HEADER & VIEW ALL / COUNT */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="rounded-xl bg-white px-4 py-1">
+          <div className="rounded-xl bg-white px-4">
             <h2 className="text-sm font-extrabold text-primary">Recent Appointments</h2>
           </div>
-
-          <button 
-            onClick={() => updateQueryParam('status', 'all')}
-            className="rounded-xl bg-white border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition cursor-pointer"
-          >
-            View All ({appointments.length})
-          </button>
         </div>
 
         {/* SEARCH & FILTER BAR */}
@@ -133,8 +151,8 @@ function AppointmentMonitoringContent() {
                   onClick={() => updateQueryParam('status', tab.value)}
                   className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer ${
                     isActive 
-                      ? 'bg-slate-800 text-white border border-slate-800' 
-                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                      ? 'bg-primary text-white border border-primary' 
+                      : 'bg-white text-primary border border-primary hover:bg-slate-50'
                   }`}
                 >
                   {Icon && <Icon className="h-3.5 w-3.5" />}
@@ -175,7 +193,15 @@ function AppointmentMonitoringContent() {
                   {appointments.map((apt, index) => {
                     const patientName = apt.patientName || apt.patient?.name || 'Patient Name';
                     const doctorName = apt.doctorName || apt.doctor?.name || 'Doctor Name';
-                    const dateTime = apt.dateTime ? new Date(apt.dateTime).toLocaleString() : '20 Mar, 2026 - 10:30 AM';
+                    
+                    // Format date & time nicely if available
+                    const rawDate = apt.appointmentDate || apt.dateTime;
+                    const formattedDate = rawDate 
+                      ? new Date(rawDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) 
+                      : 'N/A';
+                    const timeString = apt.timeSlot ? ` - ${apt.timeSlot}` : '';
+                    const dateTimeDisplay = `${formattedDate}${timeString}`;
+                    
                     const type = apt.type || 'Consultation';
 
                     return (
@@ -185,7 +211,7 @@ function AppointmentMonitoringContent() {
                       >
                         <span className="font-bold text-slate-900 truncate px-1">{patientName}</span>
                         <span className="truncate px-1">{doctorName}</span>
-                        <span className="text-slate-600 truncate px-1">{dateTime}</span>
+                        <span className="text-slate-600 truncate px-1">{dateTimeDisplay}</span>
                         <span className="font-semibold truncate px-1">{type}</span>
                         
                         <div>
@@ -206,6 +232,38 @@ function AppointmentMonitoringContent() {
 
             </div>
           </div>
+
+          {/* Table Footer Pagination Controls */}
+          {pagination && pagination.totalPages > 0 && (
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 pt-3">
+              <div className="text-xs font-semibold text-slate-600">
+                Showing page {pagination.currentPage} of {pagination.totalPages} ({pagination.totalAppointments} total records)
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPrevPage}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+
+                <span className="px-3 py-1 text-xs font-bold text-slate-800 bg-slate-100 rounded-lg border border-slate-200">
+                  {currentPage}
+                </span>
+
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNextPage}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
 
       </div>
@@ -214,7 +272,6 @@ function AppointmentMonitoringContent() {
   );
 }
 
-// Default exported page component that wraps the content in <Suspense>
 export default function AppointmentMonitoringPage() {
   return (
     <DashboardWrapper>

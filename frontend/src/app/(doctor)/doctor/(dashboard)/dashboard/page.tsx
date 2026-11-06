@@ -87,7 +87,7 @@ export default function DoctorDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-[#2563eb]" />
+        <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function DoctorDashboardPage() {
     return (
       <div className="mx-auto max-w-7xl px-5 py-12 text-center">
         <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-800">
-          <p className="font-semibold">{error || "Failed to load dashboard."}</p>
+          <p className="font-semibold">{error || "Failed to load dashboard"}</p>
           <button 
             onClick={() => window.location.reload()} 
             className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 transition"
@@ -149,7 +149,7 @@ export default function DoctorDashboardPage() {
             Appointment Overview
           </h2>
           <p className="mt-1 text-sm text-[#64748b]">
-            A quick overview of your appointments and schedule metrics.
+            A quick overview of your appointments and schedule metrics
           </p>
         </div>
 
@@ -217,7 +217,7 @@ export default function DoctorDashboardPage() {
             </div>
           ) : (
             <p className="p-6 text-center text-sm text-[#64748b]">
-              No recent appointments found.
+              No recent appointments found
             </p>
           )}
         </div>
@@ -227,7 +227,7 @@ export default function DoctorDashboardPage() {
       <section className="mt-8">
         <h2 className="text-xl font-bold text-[#172033]">Your workspace</h2>
         <p className="mt-1 text-sm text-[#64748b]">
-          Quick access to your doctor portal features.
+          Quick access to your doctor portal features
         </p>
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -250,7 +250,7 @@ export default function DoctorDashboardPage() {
           >
             <h3 className="font-bold">Appointments</h3>
             <p className="mt-2 text-sm text-[#64748b]">
-              View appointment requests and manage upcoming patient consultations.
+              View appointment requests and manage upcoming patient consultations
             </p>
             <span className="mt-4 inline-block text-sm font-semibold text-[#2563eb]">
               View appointments 

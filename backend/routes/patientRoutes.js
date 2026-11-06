@@ -1,11 +1,8 @@
 import {
-    getDoctors,
-    getServices,
     getAllAppointments,
     bookAppointment,
     cancelAppointment,
     checkDoctorAvailability,
-    getDoctorProfile,
     getPatientProfile,
     updatePatientProfile,
     createReview
@@ -15,17 +12,12 @@ import express from 'express';
 
 const router=express.Router();
 
-router.get("/doctors",getDoctors);
-
-router.get("/services",getServices);
 
 router.get("/appointments",authMiddleware,getAllAppointments);
 
 router.post("/appointments/:doctorId",authMiddleware,bookAppointment);
 
 router.patch("/appointments/:id/cancel",authMiddleware,cancelAppointment);
-
-router.get("/doctors/:doctorId",authMiddleware,getDoctorProfile);
 
 router.get("/doctors/:doctorId/availability",authMiddleware,checkDoctorAvailability);
 

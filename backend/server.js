@@ -7,7 +7,8 @@ import connectDB from './database/db.js';
 import adminRoutes from './routes/adminRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
-import patientRoutes from './routes/patientRoutes.js'
+import patientRoutes from './routes/patientRoutes.js';
+import publicRoutes from './routes/publicRoutes.js';
 
 
 dotenv.config();
@@ -53,6 +54,7 @@ app.use(cors({
 
 
 //routes
+app.use("/api",publicRoutes);
 app.use("/api/auth",authRoutes);
 app.use("/api/admin",adminRoutes);
 app.use("/api/doctor",doctorRoutes);
