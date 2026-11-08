@@ -64,7 +64,7 @@ export default function BookingModal({
   const router = useRouter();
   const { user } = useAuthStore();
 
-  // Generate upcoming 10 days for selection
+  // Generate upcoming 14 days for selection
   const upcomingDays = useMemo(() => {
     const days = [];
     const today = new Date();
@@ -104,6 +104,7 @@ export default function BookingModal({
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [successAppointmentId, setSuccessAppointmentId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Reset or initialize when modal opens
   useEffect(() => {
@@ -112,6 +113,7 @@ export default function BookingModal({
       setSelectedDate(initial);
       setSelectedTimeSlot(null);
       setSuccessAppointmentId(null);
+      setError(null);
     }
   }, [isOpen, upcomingDays]);
 
@@ -155,41 +157,33 @@ export default function BookingModal({
 
     try {
       setSubmitting(true);
-      const profile = await patientApi.getProfile();
+      setError(null);
 
-      const newApt = await patientApi.createAppointment({
-        patient: {
-          _id: user?._id || "pat-usr-101",
-          name: user?.name || profile?.name || "Nishant Sharma",
-          email: user?.email || profile?.email || "patient@mediconnect.com",
-          phone: profile?.phone || "9876543210",
-        },
-        doctor: {
-          _id: doctor._id,
-          user: {
-            name: doctor.user.name,
-            email: doctor.user.email,
-            avatar: doctor.user.avatar,
-          },
-          specialization: {
-            name: doctor.specialization.name,
-          },
-          qualifications: doctor.qualifications || ["MBBS", "MD"],
-          experienceYears: doctor.experienceYears || 10,
-          clinicAddress: doctor.clinicAddress,
-          averageRating: doctor.averageRating || 4.9,
-          totalReviews: doctor.totalReviews || 120,
-        },
+      // Fetch patient profile if state is empty
+      let patientInfo = user;
+      if (!patientInfo) {
+        const profileRes = await patientApi.getPatientProfile();
+        patientInfo = profileRes?.data || profileRes?.patient || profileRes;
+      }
+
+      const appointmentData = {
         appointmentDate: selectedDate.fullDate.toISOString(),
         timeSlot: selectedTimeSlot,
         consultationFee: doctor.consultationFee,
-        symptoms: "",
-        cancellationReason: null,
-      });
+        patientName: patientInfo?.name,
+        patientEmail: patientInfo?.email,
+      };
 
-      setSuccessAppointmentId(newApt._id);
-    } catch (err) {
+      const response = await patientApi.bookAppointment(doctor._id, appointmentData);
+
+      const createdAppointmentId = response?._id || response?.appointment?._id || response?.data?._id || "booked-success";
+      setSuccessAppointmentId(createdAppointmentId);
+    } catch (err: any) {
       console.error("Booking error:", err);
+      setError(
+        err?.response?.data?.message ||
+          "Failed to book your appointment. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -210,7 +204,7 @@ export default function BookingModal({
                 Book Consultation
               </h2>
               <p className="text-xs text-slate-500">
-                {doctor.user.name} • {doctor.specialization.name}
+                {doctor.user.name} — {doctor.specialization.name}
               </p>
             </div>
           </div>
@@ -253,7 +247,7 @@ export default function BookingModal({
               <div className="flex justify-between items-center pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Date & Slot:</span>
                 <span className="font-bold text-slate-800">
-                  {selectedDate.shortDay}, {selectedDate.month} {selectedDate.dateNum} • {selectedTimeSlot}
+                  {selectedDate.shortDay}, {selectedDate.month} {selectedDate.dateNum} — {selectedTimeSlot}
                 </span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-slate-200">
@@ -296,6 +290,13 @@ export default function BookingModal({
           /* BOOKING FORM */
           <form onSubmit={handleSubmitBooking} className="p-6 sm:p-7 space-y-6">
             
+            {error && (
+              <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+                <p>{error}</p>
+              </div>
+            )}
+
             {/* STEP 1: Date Picker */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
@@ -381,7 +382,7 @@ export default function BookingModal({
               )}
             </div>
 
-            {/* STEP 3: Fee Confirmation Banner ("₹800 • Pay Directly at Clinic") */}
+            {/* STEP 3: Fee Confirmation Banner */}
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -389,7 +390,7 @@ export default function BookingModal({
                 </div>
                 <div>
                   <div className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                    <span>₹{doctor.consultationFee} • Pay Directly at Clinic</span>
+                    <span>₹{doctor.consultationFee} — Pay Directly at Clinic</span>
                   </div>
                   <p className="text-[11px] text-emerald-800">
                     Zero online prepayment required. Pay at the clinic counter upon arrival.
@@ -432,4 +433,3 @@ export default function BookingModal({
     </div>
   );
 }
-

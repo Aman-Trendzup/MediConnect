@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { RotateCcw, X, Calendar as CalendarIcon, Clock } from "lucide-react";
-import { patientApi, PatientAppointment } from "@/services/patientApi";
+import { RotateCcw, X, Calendar as CalendarIcon, Clock, AlertCircle } from "lucide-react";
+import { patientApi } from "@/services/patientApi";
 
 interface RescheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  appointment: PatientAppointment | null;
-  onSuccess: (updatedApt: PatientAppointment) => void;
+  appointment: any | null;
+  onSuccess: (updatedApt: any) => void;
 }
 
 const DEFAULT_SLOTS = [
@@ -51,6 +51,7 @@ export default function RescheduleModal({
   const [selectedDate, setSelectedDate] = useState<string>(upcomingDays[0]?.isoString || "");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [rescheduling, setRescheduling] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen || !appointment) return null;
 
@@ -60,17 +61,27 @@ export default function RescheduleModal({
 
     try {
       setRescheduling(true);
-      const updated = await patientApi.rescheduleAppointment(
+      setError(null);
+
+      const response = await patientApi.rescheduleAppointment(
         appointment._id,
         selectedDate,
         selectedSlot
       );
-      if (updated) {
-        onSuccess(updated);
+
+      // Handle common response structures securely
+      const updatedApt = response?.updatedAppointment || response?.appointment || response?.data || response;
+
+      if (updatedApt) {
+        onSuccess(updatedApt);
       }
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Reschedule error:", err);
+      setError(
+        err?.response?.data?.message ||
+          "An error occurred while rescheduling the appointment."
+      );
     } finally {
       setRescheduling(false);
     }
@@ -88,7 +99,7 @@ export default function RescheduleModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">Reschedule Appointment</h3>
-              <p className="text-xs text-slate-500">{appointment.doctor.user.name}</p>
+              <p className="text-xs text-slate-500">{appointment?.doctor?.user?.name || "Doctor"}</p>
             </div>
           </div>
           <button
@@ -103,13 +114,23 @@ export default function RescheduleModal({
         {/* Current Slot Info */}
         <div className="rounded-2xl bg-slate-50 p-3.5 text-xs text-slate-600 border border-slate-200/80">
           <span className="font-semibold text-slate-800">Current Slot: </span>
-          {new Date(appointment.appointmentDate).toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-          })}{" "}
-          • {appointment.timeSlot}
+          {appointment?.appointmentDate
+            ? new Date(appointment.appointmentDate).toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })
+            : ""}{" "}
+          • {appointment?.timeSlot || ""}
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+            <p>{error}</p>
+          </div>
+        )}
 
         <form onSubmit={handleConfirmReschedule} className="space-y-4">
           {/* Step 1: Date Picker */}
@@ -208,4 +229,3 @@ export default function RescheduleModal({
     </div>
   );
 }
-

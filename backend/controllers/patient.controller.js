@@ -351,3 +351,91 @@ export const createReview = async (req, res) => {
     });
   }
 };
+
+export const rescheduleAppointment = async (req, res) => {
+  try {
+    const patientId = req.user.id;
+    const { id } = req.params; // appointment ID from URL route
+    const { appointmentDate, timeSlot } = req.body;
+
+    if (!appointmentDate || !timeSlot) {
+      return res.status(400).json({
+        success: false,
+        message: "New appointment date and time slot are required",
+      });
+    }
+
+    //  Find the existing appointment and ensure ownership
+    const appointment = await Appointment.findOne({ _id: id, patient: patientId });
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found or you are not authorized to reschedule it",
+      });
+    }
+
+    if (appointment.status === "cancelled" || appointment.status === "completed") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot reschedule an appointment that is already ${appointment.status}`,
+      });
+    }
+
+    const doctorId = appointment.doctor;
+    const targetDate = new Date(appointmentDate);
+
+    //  Check if doctor has blocked this new date
+    const isBlocked = await BlockedSlot.findOne({
+      doctor: doctorId,
+      date: targetDate,
+    });
+
+    if (isBlocked) {
+      return res.status(400).json({
+        success: false,
+        message: "The doctor is unavailable on this date (Time-Off / Blocked)",
+      });
+    }
+
+    //  Check if the new time slot is already booked (excluding current appointment)
+    const existingAppointment = await Appointment.findOne({
+      _id: { $ne: id },
+      doctor: doctorId,
+      appointmentDate: targetDate,
+      timeSlot: timeSlot,
+      status: { $ne: "cancelled" },
+    });
+
+    if (existingAppointment) {
+      return res.status(400).json({
+        success: false,
+        message: "This time slot is already booked",
+      });
+    }
+
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
+      id,
+      {
+        appointmentDate: targetDate,
+        timeSlot,
+        status: "pending", 
+      },
+      { new: true, runValidators: true }
+    ).populate({
+      path: 'doctor',
+      populate: { path: 'user', select: 'name email avatar' }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully rescheduled appointment",
+      updatedAppointment,
+    });
+  } catch (error) {
+    console.log("Error while rescheduling appointment:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error while rescheduling appointment",
+    });
+  }
+};

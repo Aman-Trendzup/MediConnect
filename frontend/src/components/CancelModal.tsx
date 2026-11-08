@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AlertCircle, X, ShieldCheck } from "lucide-react";
-import { patientApi, PatientAppointment } from "@/services/patientApi";
+import { patientApi } from "@/services/patientApi";
 
 export const CANCEL_REASONS = [
   "Schedule Conflict",
@@ -16,8 +16,8 @@ type CancelReason = (typeof CANCEL_REASONS)[number];
 interface CancelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  appointment: PatientAppointment | null;
-  onSuccess: (updatedApt: PatientAppointment) => void;
+  appointment: any;
+  onSuccess: (updatedApt: any) => void;
 }
 
 export default function CancelModal({
@@ -29,6 +29,7 @@ export default function CancelModal({
   const [selectedReason, setSelectedReason] = useState<CancelReason>("Schedule Conflict");
   const [customNote, setCustomNote] = useState<string>("");
   const [cancelling, setCancelling] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen || !appointment) return null;
 
@@ -36,6 +37,9 @@ export default function CancelModal({
     e.preventDefault();
     try {
       setCancelling(true);
+      setError(null);
+
+      // Build the final reason string matching backend validation requirements
       const finalReason =
         selectedReason === "Other" && customNote.trim()
           ? `Other: ${customNote.trim()}`
@@ -43,13 +47,21 @@ export default function CancelModal({
           ? `${selectedReason} - ${customNote.trim()}`
           : selectedReason;
 
-      const updated = await patientApi.cancelAppointment(appointment._id, finalReason);
-      if (updated) {
-        onSuccess(updated);
+      const response = await patientApi.cancelAppointment(appointment._id, finalReason);
+
+      // Your controller returns { success: true, message: "...", updatedAppointment }
+      const updatedApt = response?.updatedAppointment || response?.appointment || response?.data || response;
+
+      if (updatedApt) {
+        onSuccess(updatedApt);
       }
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Cancellation error:", err);
+      setError(
+        err?.response?.data?.message ||
+          "An error occurred while cancelling appointment."
+      );
     } finally {
       setCancelling(false);
     }
@@ -77,27 +89,37 @@ export default function CancelModal({
         {/* Appointment Context */}
         <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/80 text-xs text-slate-700 space-y-1">
           <p className="font-semibold text-slate-900">
-            Consultation with {appointment.doctor.user.name}
+            Consultation with {appointment?.doctor?.user?.name || "Doctor"}
           </p>
           <p className="text-slate-500">
-            {new Date(appointment.appointmentDate).toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}{" "}
-            • {appointment.timeSlot}
+            {appointment?.appointmentDate
+              ? new Date(appointment.appointmentDate).toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : ""}{" "}
+            • {appointment?.timeSlot || ""}
           </p>
           <p className="text-[11px] text-slate-400">
-            {appointment.doctor.clinicAddress.street}, {appointment.doctor.clinicAddress.city}
+            {appointment?.doctor?.clinicAddress?.street}, {appointment?.doctor?.clinicAddress?.city}
           </p>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-800">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+            <p>{error}</p>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleConfirmCancel} className="space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 block">
-              Reason for Cancellation
+              Reason for Cancellation *
             </label>
 
             {/* Radio Options */}
@@ -131,7 +153,7 @@ export default function CancelModal({
           {/* Optional / Other Comment */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 block">
-              {selectedReason === "Other" ? "Please specify reason:" : "Additional Note (Optional):"}
+              {selectedReason === "Other" ? "Please specify reason *" : "Additional Note (Optional):"}
             </label>
             <textarea
               rows={2}
@@ -176,4 +198,3 @@ export default function CancelModal({
     </div>
   );
 }
-

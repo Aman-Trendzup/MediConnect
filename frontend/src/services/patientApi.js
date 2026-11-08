@@ -12,8 +12,10 @@ export const patientApi = {
     return response.data;
   },
 
-  cancelAppointment: async (appointmentId) => {
-    const response = await api.patch(`/api/patient/appointments/${appointmentId}/cancel`);
+cancelAppointment: async (appointmentId, cancellationReason) => {
+    const response = await api.patch(`/api/patient/appointments/${appointmentId}/cancel`, {
+      cancellationReason,
+    });
     return response.data;
   },
 
@@ -34,6 +36,13 @@ export const patientApi = {
 
   createReview: async (appointmentId, reviewData) => {
     const response = await api.post(`/api/patient/appointments/${appointmentId}/review`, reviewData);
+    return response.data;
+  },
+  rescheduleAppointment: async (appointmentId, appointmentDate, timeSlot) => {
+    const response = await api.patch(`/api/patient/appointments/${appointmentId}/reschedule`, {
+      appointmentDate,
+      timeSlot,
+    });
     return response.data;
   },
 };
