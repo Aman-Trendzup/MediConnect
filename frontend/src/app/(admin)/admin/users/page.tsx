@@ -53,6 +53,11 @@ function UserManagementContent() {
   const [newStatusInput, setNewStatusInput] = useState<string>('active');
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
 
+  // Delete Modal States
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<boolean>(false);
+
   // Fetch users from backend API using Axios
   const fetchUsers = async () => {
     setLoading(true);
@@ -131,13 +136,24 @@ function UserManagementContent() {
     }
   };
 
-  // Handle Delete User
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete user "${name}"?`)) return;
+  // Open Delete Modal
+  const openDeleteModal = (user: User) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Confirm Delete User
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+
+    setDeletingUser(true);
+    setActionLoadingId(userToDelete._id);
 
     try {
-      const data = await adminApi.deleteUser(id);
+      const data = await adminApi.deleteUser(userToDelete._id);
       if (data.success) {
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
         fetchUsers();
       } else {
         alert(data.message || 'Failed to delete user');
@@ -145,6 +161,9 @@ function UserManagementContent() {
     } catch (error: any) {
       console.error("Error deleting user:", error);
       alert(error.response?.data?.message || 'An error occurred while deleting.');
+    } finally {
+      setDeletingUser(false);
+      setActionLoadingId(null);
     }
   };
 
@@ -263,13 +282,6 @@ function UserManagementContent() {
 
                         {/* Action Buttons */}
                         <div className="flex items-center justify-center gap-1">
-                          <button 
-                            onClick={() => router.push(`/admin/users/${user._id}`)}
-                            title="View Profile"
-                            className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-800 hover:text-white transition shadow-2xs cursor-pointer"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </button>
 
                           {/* Status Change Modal Button */}
                           <button 
@@ -278,15 +290,23 @@ function UserManagementContent() {
                             title="Change User Status"
                             className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-800 hover:text-white transition shadow-2xs cursor-pointer"
                           >
-                            {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "change status"}
+                            {isUpdating && actionLoadingId === user._id && selectedUser?._id === user._id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : "change status"}
                           </button>
 
+                          {/* Delete Button */}
                           <button 
-                            onClick={() => handleDelete(user._id, user.name)}
+                            onClick={() => openDeleteModal(user)}
+                            disabled={isUpdating}
                             title="Delete User"
                             className="p-1.5 rounded-lg border border-rose-200 bg-white text-rose-600 hover:bg-rose-600 hover:text-white transition shadow-2xs cursor-pointer"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            {isUpdating && actionLoadingId === user._id && userToDelete?._id === user._id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -387,6 +407,55 @@ function UserManagementContent() {
                 </button>
               </div>
             </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {isDeleteModalOpen && userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-300">
+            
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-900 uppercase">
+                  Confirm User Deletion
+                </h3>
+              </div>
+              <button 
+                onClick={() => setIsDeleteModalOpen(false)} 
+                className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to delete user <strong className="text-slate-900">{userToDelete.name}</strong> ({userToDelete.email})? This action is permanent and cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <button 
+                type="button" 
+                onClick={() => setIsDeleteModalOpen(false)} 
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleConfirmDelete}
+                disabled={deletingUser}
+                className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white hover:bg-rose-700 transition disabled:opacity-50 cursor-pointer"
+              >
+                {deletingUser && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Yes, Delete User
+              </button>
+            </div>
 
           </div>
         </div>
